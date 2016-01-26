@@ -1,0 +1,45 @@
+/* That Tightrope branding tho*/
+#trstacks_meta {
+  background-color: #FF6C2C;
+}
+
+.field-wrapper {
+  box-sizing: border-box;
+  background-color: #ececec;
+  min-height: 400px;
+  padding: 5px;
+}
+
+.meta-row:after {
+     visibility: hidden;
+     display: block;
+     font-size: 0;
+     content: " ";
+     clear: both;
+     height: 0;
+}
+
+div.meta-row {
+  background-color: #fff;
+  box-sizing: border-box;
+  margin: 10px;
+  padding: 10px;
+}
+
+div.meta-th {
+  font-size: 16px;
+  padding: 5px;
+}
+div.left {
+  float: left;
+  width: 40%;
+}
+div.layerOptions {
+
+  box-sizing: border-box;
+  width: 60%;
+  height: 100%;
+  background-color: #fff;
+  float: left;
+  border-left: 1px dashed black;
+}
