@@ -18,7 +18,6 @@ jQuery( function( $ ) {
     });
   }
   function create_new_band (modules) {
-      // console.log(modules);
       var modArr = modules.data;
       var newBand = '<li><div class="meta-row" id="row' + stacks_data.bandNum + '">' +
         '<div class="left">' +
@@ -27,13 +26,10 @@ jQuery( function( $ ) {
           '<label for="band-type" class="band-type">Band Type:</label>' +
         '</div>' +
         '<div class="meta-td">' +
-            // '<form action="" method="post">' +
-            '<select class="bandType" name="band_id[]" id="band_id' + stacks_data.bandNum + '">';
-            //console.log(Object.keys(modArr).length);
-            for(var i = 2; i <= Object.keys(modArr).length + 1; i++){
-              newBand += '<option name="' + modArr[i] + '" value=' + modArr[i] + '>' + modArr[i] + '</option>';
-            }
-
+        '<select class="bandType" name="band_id[]" id="band_id' + stacks_data.bandNum + '">';
+      for(var i = 2; i <= Object.keys(modArr).length + 1; i++){
+        newBand += '<option name="' + modArr[i] + '" value=' + modArr[i] + '>' + modArr[i] + '</option>';
+      }
       newBand += '</select>' +
         '</div>' +
         '</div>' +
@@ -42,7 +38,6 @@ jQuery( function( $ ) {
 
       $('#sortable').append( newBand );
       stacks_data.bandNum++;
-      // console.log(stacks_data.bandNum);
   }
 
   function addLayerOptions ( htmlResponse, stackLayer ) {
@@ -50,7 +45,7 @@ jQuery( function( $ ) {
   }
 
   function retrieveMarkup ( bandType, stackLayer ) {
-      $.ajax({
+      return $.ajax({
         url: ajaxurl,
         method: 'GET',
         data: {
@@ -58,81 +53,45 @@ jQuery( function( $ ) {
           action: 'get_module'
         },
         dataType: 'json'
-        }).
-        done(function( response ) {
-          //console.log('hi');
-          addLayerOptions(response.data, stackLayer);
-        }).
-        fail(function( error ) {
-          //console.log(error);
-        });
-  }
-
-  function saveStacksAJAX () {
-    var bandArr = [];
-    var selector = 'select#band_id';
-    for(var i = 0; i < stacks_data.bandNum; ++i){
-      bandArr[i] = $(selector + i).val();
-    }
-
-      //console.log('numBands: ' + stacks_data.bandNum);
-      //console.log('bandVals: ' + bandArr);
-      var data = {
-        action: "trstacks_meta_save",
-        stackCount : stacks_data.bandNum,
-        bandVals: bandArr
-      };
-      $.post({url: ajaxurl, data, dataType: 'json'
-      }).
-      done(function(response) {
-        //console.log(response.data);
-        //console.log('Successfully passed data to trstacks_meta_save function');
-      }).
-      fail(function(err) {
-        //console.log(err);
       });
   }
 
-  // function getNumInputsFromModule(layer) {
-  //   //console.log(layer);
-  //   //console.log($(layer).find('.c-input'));
-  //   var inputs = $(layer).find('.c-input');
-  //   //console.log(inputs.length);
-  //   return inputs.length;
-  // }
-  //
-  // function changeStacksToInputs(numInputs, /*index,*/ el) {
-  //   // console.log(numInputs);
-  //   $(el).find('.layerOptions.right').css('background-color', 'red');
-  //   var layerOptions = $('.layerOptions');
-  //   var numStacks = $('.layerOptions').length;
-  //   var inputHTML = "Src: <input name='c-inputs' type='text'/><br>";
-  //   //var dom = $(el).html();
-  //   //console.log(layerOptions[index]);
-  //   for(i = 0; i < numInputs; i++){
-  //       $(layerOptions/*[index]*/).append(inputHTML);
-  //   }
-  //
-  // }
+  function getNumInputsFromModule(layer) {
+    var inputs = $(layer).find('.c-input');
+    return inputs.length;
+  }
 
-  // function saveStacks () {
-  //   var htmlForm = "";
-  // }
+  function changeStacksToInputs(numInputs, layer) {
+    var layerOptions = $('.layerOptions');
+    var left = $('.left');
+    var numStacks = $('.layerOptions').length;
+    var cInputLabels = $(layer).find('.c-input');
+    var labels = [];
+    var inputVals = [];
+
+    $.each(cInputLabels, function (i, e) {
+      labels[i] = $(e).prop('tagName');
+      inputVals[i] = $(e).prop('innerHTML');
+    });
+    //console.log(jsonData);
+    for(i = 0; i < numInputs; i++){
+      if(labels[i] == "P")
+        var inputHTML = '<textarea name="c_input[]">' + inputVals[i] + '</textarea><br>';
+      else
+        var inputHTML = "<input name='c_input[]' type='text' value='" + inputVals[i] + "'/><br>";
+
+      $(layer.parent()).find(left).append(labels[i] + ": " + inputHTML);
+    }
+  }
 
   // User Input Handlers
   $( document ).on( 'click', '#addBtn', function ( e ) {
     e.preventDefault();
-    //create_new_band();
     var modules = retrieveModules();
-    modules.done(function(res) {
+    modules.then(function(res) {
       stacks_data.modules = res;
       create_new_band(stacks_data.modules);
     });
-    var value = $( '.bandType' ).last().val();
-    //var value = $( this ).closest( '.bandType' ).val();
-    var layer = $( '.bandType' ).last().closest( '.meta-row' ).find( '.layerOptions' );
-    $(layer).css('background', 'red');
-    retrieveMarkup(value, layer);
   });
   $( document ).on( 'click', '.delBtn', function ( e ) {
     e.preventDefault();
@@ -141,24 +100,20 @@ jQuery( function( $ ) {
   });
   $( document ).on( 'change', '.bandType', function () {
     var value = $( this ).val();
-    //console.log('Value: ' + value);
     var layer = $( this ).closest( '.meta-row' ).find( '.layerOptions' );
-    retrieveMarkup(value, layer);
+    var markup = retrieveMarkup(value);
+    markup.then(function(res) {
+      addLayerOptions(res.data, layer);
+      var numInputs = getNumInputsFromModule(layer);
+      changeStacksToInputs(numInputs, layer);
+    });
 
-    //console.log(numInputs);
-    //changeStacksToInputs(numInputs, layer);
-  });
-
-  $( document ).on( 'click', '#saveBtn', function ( e ) {
-    e.preventDefault();
-    saveStacksAJAX();
   });
 
   $( document ).on( 'click', 'input#publish', function ( e ) {
      if(stacks_data.bandNum != stacks_data.oldNum){
        var hiddenInput = "<input type='hidden' name='numBands' value='" + stacks_data.bandNum + "'>";
        $('#sortable').append(hiddenInput);
-       console.log(stacks_data.bandNum);
      }
   });
 });

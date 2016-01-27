@@ -15,7 +15,7 @@ function trstacks_meta_callback ( $post ) {
 ?>
   <div class="field-wrapper">
     <button id="addBtn">Add Band</button>
-    <button id="saveBtn">Save Stacks</button>
+    <!-- <button id="saveBtn">Save Stacks</button> -->
     <form action="" method="post">
     <ul id="sortable">
     <?php
