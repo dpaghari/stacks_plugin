@@ -34,7 +34,7 @@ function trstacks_meta_callback ( $post ) {
           $final = array_merge($final, $temp);
       }
       $iter = 0;
-      //getInputs($post->ID, $final);
+      // getInputs($post->ID, $final);
       foreach($final as $f){
       ?>
         <li><div class="meta-row" id="row">

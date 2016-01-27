@@ -75,9 +75,9 @@ class TRStacks {
   function saveFromForm( $post_id ) {
     $numBandsSaved = (int)get_post_meta( $post_id, 'numBands', true );
     $cInputs = array();
-
+    $lineNum = 0;
       $jsonPath = STACKS_DIR . '/json/' . $post_id . '.json';
-      if (file_exists($jsonPath)) {
+      // if (file_exists($jsonPath)) {
       $fh = fopen($jsonPath, 'w');
       fwrite($fh, '{' . "\n");
 
@@ -88,35 +88,36 @@ class TRStacks {
           foreach($_POST['c_input'] as $input)  {
 
             if($input != ""){
-              $inputStr = json_encode($input);
+              $inputStr = '"' . json_encode($lineNum) . '"' . " : " . json_encode($input);
+
               fwrite($fh, $inputStr . ",\n");
 
             }
-
+            $lineNum++;
           }
         }
         fwrite($fh, '}' . "\n");
         fclose($fh);
-      }
-      else {
-        $fh = fopen($jsonPath, 'w');
-        fwrite($fh, '{' . "\n");
-        if(!empty($_POST['c_input'])) {
-          $cInputs = array_values($_POST['c_input']);
-          $numCInputs = count($cInputs);
-
-        foreach($_POST['c_input'] as $input)  {
-
-          if($input != ""){
-              $inputStr = json_encode($input);
-              fwrite($fh, $inputStr . "\n");
-          }
-
-        }
-        }
-        fwrite($fh, '}' . "\n");
-        fclose($fh);
-      }
+      // }
+      // else {
+      //   $fh = fopen($jsonPath, 'w');
+      //   fwrite($fh, '{' . "\n");
+      //   if(!empty($_POST['c_input'])) {
+      //     $cInputs = array_values($_POST['c_input']);
+      //     $numCInputs = count($cInputs);
+      //
+      //   foreach($_POST['c_input'] as $input)  {
+      //
+      //     if($input != ""){
+      //         $inputStr = json_encode($input);
+      //         fwrite($fh, $inputStr . "\n");
+      //     }
+      //
+      //   }
+        // }
+        // fwrite($fh, '}' . "\n");
+        // fclose($fh);
+      // }
     // Save newly added Bands/Layers
     $bArr = array();
     if(!empty($_POST['band_id'])) {
