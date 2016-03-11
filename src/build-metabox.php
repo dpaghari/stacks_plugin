@@ -34,7 +34,7 @@ function trstacks_meta_callback ( $post ) {
           $final = array_merge($final, $temp);
       }
       $iter = 0;
-      // getInputs($post->ID, $final);
+      getInputs($post->ID, $final);
       foreach($final as $f){
       ?>
         <li><div class="meta-row" id="row">
@@ -81,25 +81,28 @@ function getInputs($post_id, $stack = array()) {
   wp_enqueue_script( 'stacks-input-script', plugins_url('tr-stacks/js/analyzeStack.js'), array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-sortable' ), '1.0', true);
   $jsonFile = STACKS_DIR . '/json/' . $post_id . '.json';
   if(file_exists($jsonFile)){
-  $f = fopen($jsonFile, 'r');
-  $tempArr = array();
-  if ($f) {
-  while (($line = fgets($f)) !== false) {
-      // process the line read.
-      $tempArr[] = $line;
-  }
-  fclose($f);
-  } else {
-  // error opening the file.
-  }
+    $f = fopen($jsonFile, 'r');
+    $tempArr = array();
+    if ($f) {
+    while (($line = fgets($f)) !== false) {
+        // process the line read.
+        $tempArr[] = $line;
+    }
+    fclose($f);
+    } else {
+    // error opening the file.
+    }
   }
 
+  $json_dir = get_template_directory_uri() . '/json/';
   //die(var_dump($tempArr));
 
   $dataForJS = array(
     //'security' => wp_create_nonce( 'wp-js' ),
     'jsonData' => $tempArr,
-    'stack' => $stack
+    'stack' => $stack,
+    'themeDir' => $json_dir,
+    'post_id' => $post_id
   );
   wp_localize_script( 'stacks-input-script', 'phpVars', $dataForJS);
 

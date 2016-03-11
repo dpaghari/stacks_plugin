@@ -23,7 +23,6 @@ class TRStacks {
 
       if ( ($pagenow == 'post.php' || $pagenow == 'post-new.php') && $typenow == 'landing_page' ) {
           $numberOfBands = get_post_meta( get_the_ID(), 'numBands', true );
-          //die(var_dump($numberOfBands));
           wp_enqueue_style( 'stacks-admin-css', plugins_url( 'css/metabox.css', __FILE__ ) );
           wp_enqueue_script( 'stacks-metabox-script', plugins_url( 'js/metabox.js', __FILE__ ), array( 'jquery', 'jquery-ui-datepicker', 'jquery-ui-sortable' ), '1.0', true);
           $dataForJS = array(
@@ -50,7 +49,6 @@ class TRStacks {
     add_action( 'admin_enqueue_scripts', array('TRStacks', 'stacks_admin_enqueue_scripts') );
     add_action( 'wp_ajax_get_module', array( __CLASS__ , 'retrieveModule') );
     add_action( 'wp_ajax_get_all_modules', array( __CLASS__ , 'retrieveAllModules') );
-
     add_action( 'wp_ajax_trstacks_meta_save', array( __CLASS__ , 'trstacks_meta_save') );
     add_action( 'save_post', array( __CLASS__ , 'saveFromForm') );
   }
@@ -72,52 +70,39 @@ class TRStacks {
       $retrievedModules = array_diff(scandir($dir), array('..', '.'));
       exit( json_encode(array("data" => $retrievedModules)  ) );
   }
+
+
   function saveFromForm( $post_id ) {
     $numBandsSaved = (int)get_post_meta( $post_id, 'numBands', true );
     $cInputs = array();
     $lineNum = 0;
-      $jsonPath = STACKS_DIR . '/json/' . $post_id . '.json';
-      // if (file_exists($jsonPath)) {
-      $fh = fopen($jsonPath, 'w');
+    $jsonPath =  get_template_directory() . '/json';
+    if(!is_dir($jsonPath)) mkdir($jsonPath);
+
+    $fh = fopen($jsonPath . '/' . $post_id . '.json', 'a');
+      // die(var_dump($fh));
       fwrite($fh, '{' . "\n");
 
         if(!empty($_POST['c_input'])) {
-          // die(var_dump($_POST['c_input']));
           $cInputs = array_values($_POST['c_input']);
           $numCInputs = count($cInputs);
-          foreach($_POST['c_input'] as $input)  {
+          $numberofInputs = count($_POST['c_input']);
+          foreach($_POST['c_input'] as $index => $input)  {
 
             if($input != ""){
               $inputStr = '"' . json_encode($lineNum) . '"' . " : " . json_encode($input);
 
+              if($index == $numberofInputs - 1)
+              fwrite($fh, $inputStr . "\n");
+              else
               fwrite($fh, $inputStr . ",\n");
-
             }
             $lineNum++;
           }
         }
         fwrite($fh, '}' . "\n");
         fclose($fh);
-      // }
-      // else {
-      //   $fh = fopen($jsonPath, 'w');
-      //   fwrite($fh, '{' . "\n");
-      //   if(!empty($_POST['c_input'])) {
-      //     $cInputs = array_values($_POST['c_input']);
-      //     $numCInputs = count($cInputs);
-      //
-      //   foreach($_POST['c_input'] as $input)  {
-      //
-      //     if($input != ""){
-      //         $inputStr = json_encode($input);
-      //         fwrite($fh, $inputStr . "\n");
-      //     }
-      //
-      //   }
-        // }
-        // fwrite($fh, '}' . "\n");
-        // fclose($fh);
-      // }
+        update_post_meta($post_id, 'jsonURL', $jsonPath );
     // Save newly added Bands/Layers
     $bArr = array();
     if(!empty($_POST['band_id'])) {
@@ -137,6 +122,8 @@ class TRStacks {
         update_post_meta( $post_id, 'numBands', $newNum, $numBandsSaved );
     }
   }
+
+
   // Save post meta
   function trstacks_meta_save ( $post_id ) {
       //wp_nonce_field( basename( __FILE__ ), 'stacks_bands_nonce' );
